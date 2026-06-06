@@ -4,24 +4,30 @@ import "fmt"
 
 func run_generator() {
 
-	ch := generateChWriter()
+	consumer := func() {
+		ch := generator()
 
-	for i := range ch {
-		fmt.Println(i)
+		for i := range ch {
+			fmt.Println(i)
+		}
 	}
 
+	consumer()
 }
 
-func generateChWriter() <-chan int {
+func generator() <-chan int {
+
 	ch := make(chan int)
 
-	go func() {
+	producer := func() {
 		defer close(ch)
 
 		for i := range 5 {
 			ch <- i
 		}
-	}()
+	}
+
+	go producer()
 
 	return ch
 }
