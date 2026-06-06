@@ -11,6 +11,7 @@ var (
 	ErrInvalidCommandLineArg = errors.New("invalid command line argument. Pass the only argument - name of pattern (see the list in Readme.md).")
 )
 
+// Get name of function to run using command line arg.
 var funcByPatternName = map[string]func(){
 	"generator": run_generator,
 

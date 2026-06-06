@@ -4,6 +4,7 @@ import "fmt"
 
 func run_generator() {
 
+	// Consumer has now response for recieved channel. Only reads and processes as he wants.
 	consumer := func() {
 		ch := generator()
 
@@ -15,6 +16,11 @@ func run_generator() {
 	consumer()
 }
 
+// Generator is a channel owner. It should:
+// * instantiate the channel
+// * close the channel
+// * perform writes, or pass ownership to another goroutine
+// * return to consumer a channel to read from
 func generator() <-chan int {
 
 	ch := make(chan int)
