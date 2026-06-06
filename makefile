@@ -7,5 +7,5 @@ ARG?=
 run: build
 	./$(PROG_NAME) $(ARG)
 
-clear:
+clean:
 	rm ./$(PROG_NAME)
