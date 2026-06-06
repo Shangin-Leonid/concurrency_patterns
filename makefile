@@ -1,4 +1,4 @@
-PROG_NAME := concurrency_patterns
+PROG_NAME := concurrency_patterns.out
 
 build:
 	go build -o $(PROG_NAME) *.go
