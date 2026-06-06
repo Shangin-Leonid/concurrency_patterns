@@ -16,15 +16,15 @@ func run_ct_select_priority() {
 		select {
 		case <-highPriorityCh:
 			highCounter++
-			// Proccess data read from channel
+			// Proccess data
 			time.Sleep(10 * time.Millisecond)
 		case <-highPriorityCh:
 			highCounter++
-			// Proccess data read from channel
+			// Proccess data
 			time.Sleep(10 * time.Millisecond)
 		case <-lowPriorityCh:
 			lowCounter++
-			// Proccess data read from channel
+			// Proccess data
 			time.Sleep(10 * time.Millisecond)
 		}
 	}
