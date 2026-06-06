@@ -9,7 +9,8 @@ import (
 var ErrInvalidCommandLineArg = errors.New("invalid command line argument. Pass the only argument - name of pattern (see the list in Readme.md).")
 
 var funcByPatternName = map[string]func(){
-	"generator": run_generator,
+	"generator":          run_generator,
+	"ct_select_priority": run_ct_select_priority,
 }
 
 func main() {
