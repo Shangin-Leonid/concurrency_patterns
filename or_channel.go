@@ -21,8 +21,6 @@ func run_or_channel() {
 	fmt.Println("Done after", time.Since(startTS))
 }
 
-type void struct{}
-
 // The pattern 'or channel' close to 'or done', but I find these names wrong,
 // because the pattern doesn't actually join input channels.
 // It can just signal about closing or reading from one of them.
