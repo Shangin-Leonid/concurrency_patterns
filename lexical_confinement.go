@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-func run_ct_lexical_confinement() {
+func run_lexical_confinement() {
 	// Pass data by value, not by closure capture.
 	// Each instance of function processes its own chunk of data.
 	// This prevents concurrent accessing to 'allData' without any sync primitives.

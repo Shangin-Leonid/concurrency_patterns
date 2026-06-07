@@ -13,10 +13,12 @@ var (
 
 // Get name of function to run using command line arg.
 var funcByPatternName = map[string]func(){
-	"generator": run_generator,
+	"lexical_confinement": run_lexical_confinement,
+	"generator":           run_generator,
+	"or_channel":          run_or_channel,
+	"any_signal":          run_or_channel,
 
-	"ct_select_priority":     run_ct_select_priority,
-	"ct_lexical_confinement": run_ct_lexical_confinement,
+	"ct_select_priority": run_ct_select_priority,
 }
 
 func main() {
@@ -34,7 +36,7 @@ func main() {
 		return
 	}
 
-	fmt.Println()
+	fmt.Println("Run pattern...\n")
 	funcByPatternName[os.Args[1]]()
 	fmt.Println()
 }
