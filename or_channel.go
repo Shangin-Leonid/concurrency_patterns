@@ -48,7 +48,7 @@ func anySignal[T any](chs ...<-chan T) <-chan T {
 			case <-chs[0]:
 			case <-chs[1]:
 			}
-		// You can continue with optimization for common cases with len == 3, 4, ...
+		// You can continue with optimization for common cases with len == 3, 4, ... to avoid recursion
 		default:
 			select {
 			case <-chs[0]:
@@ -60,7 +60,5 @@ func anySignal[T any](chs ...<-chan T) <-chan T {
 
 	}()
 
-	// time.Sleep(2 * time.Second)
-	// close(sigCh)
 	return sigCh
 }
