@@ -51,6 +51,7 @@ func FanOut[T any](done <-chan void, nForks int, processor func(T) T, inpCh <-ch
 		ch := make(chan T)
 		outpChs[i] = (<-chan T)(ch)
 
+		// Go fork to process and resend data concurrently
 		go func() {
 			defer close(ch)
 
