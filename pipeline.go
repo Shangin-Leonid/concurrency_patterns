@@ -66,11 +66,14 @@ func run_pipeline() {
 	signChanger := func(v int) int {
 		return -v
 	}
-	done := make(chan void)
 
 	// Run the pipeline
+	done := make(chan void)
+	dataInpCh := generator(done, data...)
+	pipelineOutpCh := stage(done, signChanger, stage(done, twicer, dataInpCh))
+
 	// "-2 -4 -6 -8 -10" expected
-	for v := range stage(done, signChanger, stage(done, twicer, generator(done, data...))) {
+	for v := range pipelineOutpCh {
 		fmt.Println(v)
 	}
 
