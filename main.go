@@ -6,8 +6,6 @@ import (
 	"os"
 )
 
-type void struct{}
-
 // Sentinel errors
 var (
 	ErrInvalidCommandLineArg = errors.New("invalid command line argument. Pass the only argument - name of pattern (see the list in Readme.md).")
@@ -30,6 +28,7 @@ var funcByPatternName = map[string]func(){
 	"fan_in":              run_fan_in,
 
 	"ct_select_priority": run_ct_select_priority,
+	"ct_or_done_loop":    run_ct_or_done_loop,
 }
 
 func main() {

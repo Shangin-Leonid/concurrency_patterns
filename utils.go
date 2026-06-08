@@ -2,6 +2,8 @@ package main
 
 import "math/rand/v2"
 
+type void struct{}
+
 func randIntGenerator(nInts int, upperBound int) <-chan int {
 	outpCh := make(chan int)
 
