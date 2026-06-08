@@ -24,7 +24,7 @@ func run_fan_in() {
 	startTs := time.Now()
 
 	// Run the pattern
-	for v := range FanIn(FanOut(done, NForks, dataProcessor, randIntGenerator(NForks, 50))) {
+	for v := range FanIn(FanOut(done, NForks, dataProcessor, randIntGenerator(NForks, 50))...) {
 		fmt.Println(v)
 	}
 
@@ -33,24 +33,29 @@ func run_fan_in() {
 	fmt.Println("It takes", time.Since(startTs), "instead of", (NForks * processingTime).Seconds(), "sec")
 }
 
-func FanIn[T any](inpChs []<-chan T) <-chan T {
+// FanIn is used to join forked (for example in FanOut) processes (channels).
+// The output order is not guaranteed
+//
+// You may add 'done' channel to have an opportunity to stop before all of input channels will be closed.
+func FanIn[T any](inpChs ...<-chan T) <-chan T {
 	outpCh := make(chan T)
 
+	wg := &sync.WaitGroup{}
+	wg.Add(len(inpChs))
+
+	// Run listener-resender for each of input channels
+	for _, ch := range inpChs {
+		go func() {
+			defer wg.Done()
+			for v := range ch {
+				outpCh <- v
+			}
+		}()
+	}
+
+	// Wait for draining all input channels and close the output channel.
 	go func() {
 		defer close(outpCh)
-
-		// Run listener-resender for each of input channels
-		wg := &sync.WaitGroup{}
-		for _, ch := range inpChs {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				for v := range ch {
-					outpCh <- v
-				}
-			}()
-
-		}
 		wg.Wait()
 	}()
 
