@@ -25,6 +25,7 @@ func run_fan_out() {
 
 	// Run the pattern
 	foDataChs := FanOut(done, NForks, dataProcessor, dataCh)
+	// Here is the place for your 'fan-in' pattern
 	for _, ch := range foDataChs {
 		fmt.Println(<-ch)
 	}
