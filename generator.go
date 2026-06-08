@@ -27,7 +27,7 @@ func run_generator() {
 		return ch
 	}
 
-	// Consumer has now response for recieved channel. Only reads and processes as he wants.
+	// Consumer has no response for recieved channel. Only reads and processes as he wants.
 	consumer := func() {
 		ch := generator()
 
