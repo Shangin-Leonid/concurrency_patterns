@@ -10,10 +10,24 @@ import (
 // Works (helpful) when writers are faster than readers.
 func run_ct_select_priority() {
 
+	generator := func(nWrites int) <-chan int {
+		ch := make(chan int)
+
+		go func() {
+			defer close(ch)
+
+			for i := range nWrites {
+				ch <- i
+			}
+		}()
+
+		return ch
+	}
+
 	const maxReads = 1000
 
-	lowPriorityCh := makeChWriter(maxReads)
-	highPriorityCh := makeChWriter(maxReads)
+	lowPriorityCh := generator(maxReads)
+	highPriorityCh := generator(maxReads)
 
 	lowCounter := 0
 	highCounter := 0
@@ -36,18 +50,4 @@ func run_ct_select_priority() {
 	fmt.Println("Reads distribution:")
 	fmt.Println("High priority channel - ", highCounter)
 	fmt.Println("Low priority channel - ", lowCounter)
-}
-
-func makeChWriter(nWrites int) <-chan int {
-	ch := make(chan int)
-
-	go func() {
-		defer close(ch)
-
-		for i := range nWrites {
-			ch <- i
-		}
-	}()
-
-	return ch
 }

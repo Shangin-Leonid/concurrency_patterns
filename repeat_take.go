@@ -23,8 +23,43 @@ func run_repeat_take() {
 	// "1 2 3 4 5" expected
 	done := make(chan void)
 	defer close(done)
-	dataSource := repeat(done, dataGenerator)
-	for v := range takeN(5, dataSource) {
+	dataSource := Repeat(done, dataGenerator)
+	for v := range TakeN(5, dataSource) {
 		fmt.Println(v)
 	}
+}
+
+// Repeat is an infinite data generator (repeater)
+func Repeat[T any](done <-chan void, dataGenerator func() T) <-chan T {
+	outpCh := make(chan T)
+
+	go func() {
+		defer close(outpCh)
+
+		for {
+			select {
+			case <-done:
+				return
+			case outpCh <- dataGenerator():
+			}
+		}
+	}()
+
+	return outpCh
+}
+
+// TakeN is a broker, its only mission is taking and resending a finite sequence of data objects (messages)
+func TakeN[T any](n int, inpCh <-chan T) <-chan T {
+	takenCh := make(chan T)
+
+	go func() {
+		defer close(takenCh)
+
+		for range n {
+			v := <-inpCh
+			takenCh <- v
+		}
+	}()
+
+	return takenCh
 }

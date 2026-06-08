@@ -31,40 +31,6 @@ func run_pipeline() {
 		return dataCh
 	}
 
-	// Makes and runs a stage of pipeline, using recieved processing func.
-	// Data flows through it.
-	stage := func(done <-chan void, processor func(int) int, inp <-chan int) <-chan int {
-		outp := make(chan int)
-
-		go func() {
-			defer close(outp)
-
-			for {
-				select {
-				case <-done:
-					return
-				case v, ok := <-inp:
-					if !ok {
-						return
-					}
-					v = processor(v)
-					/*
-						// If need. Depends on programm logic.
-						// Because 'done' status may be changed since 'processor' started.
-						select{
-						case <-done:
-							return
-						default:
-						}
-					*/
-					outp <- v
-				}
-			}
-		}()
-
-		return outp
-	}
-
 	// Prepare demo data
 	data := []int{1, 2, 3, 4, 5}
 	twicer := func(v int) int {
@@ -78,11 +44,45 @@ func run_pipeline() {
 	done := make(chan void)
 	defer close(done)
 	dataInpCh := generator(done, data...)
-	pipelineOutpCh := stage(done, signChanger, stage(done, twicer, dataInpCh))
+	pipelineOutpCh := Stage(done, signChanger, Stage(done, twicer, dataInpCh))
 
 	// "-2 -4 -6 -8 -10" expected
 	for v := range pipelineOutpCh {
 		fmt.Println(v)
 	}
 
+}
+
+// Stage makes and runs a stage of pipeline, using recieved processing func.
+// Data flows through it.
+func Stage[T any](done <-chan void, processor func(T) T, inp <-chan T) <-chan T {
+	outp := make(chan T)
+
+	go func() {
+		defer close(outp)
+
+		for {
+			select {
+			case <-done:
+				return
+			case v, ok := <-inp:
+				if !ok {
+					return
+				}
+				v = processor(v)
+				/*
+					// If need. Depends on programm logic.
+					// Because 'done' status may be changed since 'processor' started.
+					select{
+					case <-done:
+						return
+					default:
+					}
+				*/
+				outp <- v
+			}
+		}
+	}()
+
+	return outp
 }
