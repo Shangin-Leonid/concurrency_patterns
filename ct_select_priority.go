@@ -24,7 +24,7 @@ func run_ct_select_priority() {
 		return ch
 	}
 
-	const maxReads = 1000
+	const maxReads = 600
 
 	lowPriorityCh := generator(maxReads)
 	highPriorityCh := generator(maxReads)

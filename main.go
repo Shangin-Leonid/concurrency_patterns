@@ -25,8 +25,8 @@ var funcByPatternName = map[string]func(){
 	"or_channel":          run_or_channel,
 	"any_signal":          run_or_channel,
 	"pipeline":            run_pipeline,
-	"fan_out":             run_fan_out,
 	"channel_filter":      run_channel_filter,
+	"fan_out":             run_fan_out,
 
 	"ct_select_priority": run_ct_select_priority,
 }
