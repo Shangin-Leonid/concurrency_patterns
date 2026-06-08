@@ -27,7 +27,7 @@ func run_channel_filter() {
 
 	// To filter channel means to ignore 'false' values and to resend 'true' ones.
 	for v := range filterFn(isEven, randGenerator(10)) {
-		fmt.Print(v, " ")
+		fmt.Println(v)
 	}
 
 }

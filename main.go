@@ -13,6 +13,10 @@ var (
 	ErrInvalidCommandLineArg = errors.New("invalid command line argument. Pass the only argument - name of pattern (see the list in Readme.md).")
 )
 
+const (
+	RunAllPatternsUserCommand = "all"
+)
+
 // Get name of function to run using command line arg.
 var funcByPatternName = map[string]func(){
 	"lexical_confinement": run_lexical_confinement,
@@ -30,25 +34,35 @@ func main() {
 
 	defer func() {
 		if p := recover(); p != nil {
-			fmt.Println("Panic: ", p)
+			fmt.Println("> Panic: ", p)
 			return
 		}
 	}()
 
-	err := parseCommandLineArgs(os.Args)
+	err := isUserCommandValid(os.Args)
 	if err != nil {
-		fmt.Println("Error: ", err)
+		fmt.Println("> Error: ", err)
+		printValidCommands()
 		return
 	}
 
-	fmt.Print("Run the '", os.Args[1], "' pattern...\n\n")
-	funcByPatternName[os.Args[1]]()
-	fmt.Println()
+	if os.Args[1] == RunAllPatternsUserCommand {
+		for pn := range funcByPatternName {
+			runPattern(pn)
+		}
+	} else {
+		runPattern(os.Args[1])
+	}
+
 }
 
-func parseCommandLineArgs(args []string) error {
+func isUserCommandValid(args []string) error {
 	if len(args) != 2 {
 		return ErrInvalidCommandLineArg
+	}
+
+	if args[1] == "all" {
+		return nil
 	}
 
 	if _, ok := funcByPatternName[args[1]]; !ok {
@@ -56,4 +70,24 @@ func parseCommandLineArgs(args []string) error {
 	}
 
 	return nil
+}
+
+func printValidCommands() {
+	fmt.Println()
+	fmt.Println("> List of valid commands (command line arguments):")
+	fmt.Println("  * all")
+	for k := range funcByPatternName {
+		fmt.Println("  *", k)
+	}
+	fmt.Println()
+}
+
+func runPattern(patternName string) {
+	fmt.Println()
+	fmt.Print("> '", patternName, "' pattern is starting...\n")
+
+	funcByPatternName[patternName]()
+
+	fmt.Println("> Finished successfully")
+	fmt.Println()
 }

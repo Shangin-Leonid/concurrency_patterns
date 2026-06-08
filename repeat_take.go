@@ -13,39 +13,6 @@ import "fmt"
 // I am using funcs as values (like closures) to name them clearly but not to have conflicts with other files.
 func run_repeat_take() {
 
-	repeat := func(done <-chan void, dataGenerator func() int) <-chan int {
-		outpCh := make(chan int)
-
-		go func() {
-			defer close(outpCh)
-
-			for {
-				select {
-				case <-done:
-					return
-				case outpCh <- dataGenerator():
-				}
-			}
-		}()
-
-		return outpCh
-	}
-
-	takeN := func(n int, inpCh <-chan int) <-chan int {
-		takenCh := make(chan int)
-
-		go func() {
-			defer close(takenCh)
-
-			for range n {
-				v := <-inpCh
-				takenCh <- v
-			}
-		}()
-
-		return takenCh
-	}
-
 	counter := 0
 	dataGenerator := func() int {
 		counter++
