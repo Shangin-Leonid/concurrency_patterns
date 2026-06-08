@@ -2,10 +2,17 @@ package main
 
 import "fmt"
 
+// 'repeat-take' pattern includes 3 instances:
+// * 'repeat' - an infinite data generator (repeater)
+// * 'takeN' - a broker, its only mission is taking and resending a finite sequence of data objects (messages)
+// * 'consumer' - a final data receiver and processer (I use a printing loop as implicit 'consumer')
+//
+// Usage by 'takeN(n, repeat(...))' means only (n+1) executions of repeater,
+// so the pattern is efficient enough.
+//
+// I am using funcs as values (like closures) to name them clearly but not to have conflicts with other files.
 func run_repeat_take() {
 
-	// Infinite generator.
-	// Usage by 'takeN(n, repeat(...))' means (n+1) executions of repeater.
 	repeat := func(done <-chan void, dataGenerator func() int) <-chan int {
 		outpCh := make(chan int)
 

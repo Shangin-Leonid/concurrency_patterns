@@ -36,6 +36,7 @@ func run_generator() {
 		}
 	}
 
-	// Run the pattern
+	// Run the pattern.
+	// "0 1 2 3 4" expected
 	consumer()
 }
