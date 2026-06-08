@@ -2,26 +2,33 @@ package main
 
 import "fmt"
 
-// I am using funcs as values (like closures) to name them clearly but not to have conflicts with other files.
+// The 'pipeline' pattern: there are
+// * source of data
+// * some stages (data processors)
+// * data flowing from source through stages
+// * consistency of these instances and processes
+//
+// I am using funcs as values (like closures) to name them clearly and not to have conflicts with other files.
+// I mean to shadow them in 'run_pipeline()'
 func run_pipeline() {
 
 	// Generates and owns the data flow, data emmiter.
 	generator := func(done <-chan void, data ...int) <-chan int {
-		dataFlowCh := make(chan int)
+		dataCh := make(chan int)
 
 		go func() {
-			defer close(dataFlowCh)
+			defer close(dataCh)
 
 			for _, v := range data {
 				select {
 				case <-done:
 					return
-				case dataFlowCh <- v:
+				case dataCh <- v:
 				}
 			}
 		}()
 
-		return dataFlowCh
+		return dataCh
 	}
 
 	// Makes and runs a stage of pipeline, using recieved processing func.
@@ -69,6 +76,7 @@ func run_pipeline() {
 
 	// Run the pipeline
 	done := make(chan void)
+	defer close(done)
 	dataInpCh := generator(done, data...)
 	pipelineOutpCh := stage(done, signChanger, stage(done, twicer, dataInpCh))
 
