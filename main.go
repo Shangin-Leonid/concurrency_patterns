@@ -89,6 +89,6 @@ func runPattern(patternName string) {
 
 	funcByPatternName[patternName]()
 
-	fmt.Println("> Finished successfully")
+	fmt.Println("> Finished")
 	fmt.Println()
 }
