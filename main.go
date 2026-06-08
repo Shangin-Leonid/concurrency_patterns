@@ -17,6 +17,7 @@ var (
 var funcByPatternName = map[string]func(){
 	"lexical_confinement": run_lexical_confinement,
 	"generator":           run_generator,
+	"repeat_take":         run_repeat_take,
 	"or_channel":          run_or_channel,
 	"any_signal":          run_or_channel,
 	"pipeline":            run_pipeline,
