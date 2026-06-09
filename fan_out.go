@@ -22,7 +22,7 @@ func run_fan_out() {
 	defer cancelCtx()
 
 	// Let's time it
-	startTs := time.Now()
+	ts := time.Now()
 
 	// Run the pattern
 	foDataChs := FanOut(ctx, NForks, dataProcessor, dataCh)
@@ -33,40 +33,52 @@ func run_fan_out() {
 
 	// Results and output
 	fmt.Println(NForks, "forks used")
-	fmt.Println("It takes", time.Since(startTs), "instead of", (NForks * processingTime).Seconds(), "sec")
+	fmt.Println("It takes", time.Since(ts), "instead of", (NForks * processingTime).Seconds(), "sec")
 
 }
 
 // FanOut is used to fork a stage of pipeline for concurrent executing.
-// The stage need to satisfy some criteria:
+//
+// In fact, the stage need to satisfy some criteria:
 // * the forked stage is a tight place in programm (too computationally expensive)
 // * no matter the order of input processing and output reading
+//
+// To use it in 'graceful shutdown' scenario (each input value must be processed):
+// * close the input channel
+// * don't cancel passed context until output channel will be closed
 func FanOut[T any](ctx context.Context, nForks int, processor func(T) T, inpCh <-chan T) []<-chan T {
 	if nForks <= 0 {
 		return []<-chan T{}
 	}
 
-	outpChs := make([]<-chan T, nForks)
+	worker := func(outpCh chan T) {
+		defer close(outpCh)
 
-	for i := range nForks {
-		ch := make(chan T)
-		outpChs[i] = (<-chan T)(ch)
-
-		// Go fork to process and resend data concurrently
-		go func() {
-			defer close(ch)
-
+		for {
 			select {
 			case <-ctx.Done():
 				return
-			default:
-				v, ok := <-inpCh
+			case v, ok := <-inpCh:
 				if !ok {
 					return
 				}
-				ch <- processor(v)
+
+				v = processor(v)
+
+				select {
+				case <-ctx.Done():
+					return
+				case outpCh <- v:
+				}
 			}
-		}()
+		}
+	}
+
+	outpChs := make([]<-chan T, nForks)
+	for i := range outpChs {
+		ch := make(chan T)
+		outpChs[i] = (<-chan T)(ch)
+		go worker(ch)
 	}
 
 	return outpChs

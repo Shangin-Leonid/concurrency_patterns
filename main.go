@@ -26,6 +26,7 @@ var funcByPatternName = map[string]func(){
 	"channel_filter":      run_channel_filter,
 	"fan_out":             run_fan_out,
 	"fan_in":              run_fan_in,
+	"fan_out_fan_in":      run_fan_out_fan_in,
 
 	"ct_select_priority": run_ct_select_priority,
 	"ct_or_done_loop":    run_ct_or_done_loop,
