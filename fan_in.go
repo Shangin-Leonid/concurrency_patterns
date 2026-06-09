@@ -25,7 +25,7 @@ func run_fan_in() {
 	startTs := time.Now()
 
 	// Run the pattern
-	for v := range FanIn(FanOut(ctx, NForks, dataProcessor, randIntGenerator(NForks, 50))...) {
+	for v := range FanIn(ctx, FanOut(ctx, NForks, dataProcessor, randIntGenerator(NForks, 50))...) {
 		fmt.Println(v)
 	}
 
@@ -38,7 +38,7 @@ func run_fan_in() {
 // The output order is not guaranteed
 //
 // You may add 'context' to have an opportunity to stop before all of input channels will be closed.
-func FanIn[T any](inpChs ...<-chan T) <-chan T {
+func FanIn[T any](ctx context.Context, inpChs ...<-chan T) <-chan T {
 	outpCh := make(chan T)
 
 	wg := &sync.WaitGroup{}
@@ -46,12 +46,16 @@ func FanIn[T any](inpChs ...<-chan T) <-chan T {
 
 	// Run listener-resender for each of input channels
 	for _, ch := range inpChs {
-		go func() {
+		go func(ch <-chan T) {
 			defer wg.Done()
-			for v := range ch {
-				outpCh <- v
+			for v := range OrDoneRange(ctx, ch) {
+				select {
+				case <-ctx.Done():
+					return
+				case outpCh <- v:
+				}
 			}
-		}()
+		}(ch)
 	}
 
 	// Wait for draining all input channels and close the output channel.

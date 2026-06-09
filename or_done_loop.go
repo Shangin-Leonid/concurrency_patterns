@@ -72,7 +72,7 @@ func run_ct_or_done_loop() {
 }
 
 func OrDoneRange[T any](ctx context.Context, ch <-chan T) <-chan T {
-	outpCh := make(chan T, 1)
+	outpCh := make(chan T)
 
 	go func() {
 		defer close(outpCh)
@@ -85,7 +85,12 @@ func OrDoneRange[T any](ctx context.Context, ch <-chan T) <-chan T {
 				if !ok {
 					return
 				}
-				outpCh <- v
+
+				select {
+				case <-ctx.Done():
+					return
+				case outpCh <- v:
+				}
 			}
 		}
 	}()
