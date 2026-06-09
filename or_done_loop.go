@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -8,14 +9,14 @@ import (
 func run_ct_or_done_loop() {
 
 	// Instead of using this:
-	// (it is wrong because of block during waiting a value in 'channel', while 'done' can give a signal)
+	// (it is wrong because of block during waiting a value in 'channel', while context can be canceled)
 	/*
 		loop:
 			for v := range channel {
 				process(v)
 
 				select {
-				case <-done:
+				case <-ctx.Done():
 					break loop // or return
 				default:
 				}
@@ -26,7 +27,7 @@ func run_ct_or_done_loop() {
 		loop:
 			for {
 				select {
-				case <-done:
+				case <-ctx.Done():
 					break loop // or return
 				case v, ok := <-channel:
 					if !ok {
@@ -55,22 +56,22 @@ func run_ct_or_done_loop() {
 
 	go uncontrollableWriter()
 
-	// Read from 'ch' until its closing or 'done' signal
-	done := make(chan void)
+	// Read from 'ch' until its closing or context canceling
+	ctx, cancelCtx := context.WithCancel(context.Background())
 	counter := 0
-	for v := range OrDoneRange(done, ch) {
+	for v := range OrDoneRange(ctx, ch) {
 		fmt.Println(v)
 
 		counter++
 		if counter == 4 {
-			close(done)
+			cancelCtx()
 		}
 	}
 	// "1 2 3 4" expected
 
 }
 
-func OrDoneRange[T any](done <-chan void, ch <-chan T) <-chan T {
+func OrDoneRange[T any](ctx context.Context, ch <-chan T) <-chan T {
 	outpCh := make(chan T, 1)
 
 	go func() {
@@ -78,7 +79,7 @@ func OrDoneRange[T any](done <-chan void, ch <-chan T) <-chan T {
 
 		for {
 			select {
-			case <-done:
+			case <-ctx.Done():
 				return
 			case v, ok := <-ch:
 				if !ok {

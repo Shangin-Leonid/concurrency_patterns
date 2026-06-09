@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+)
 
 // 'repeat-take' pattern includes 3 instances:
 // * 'repeat' - an infinite data generator (repeater)
@@ -21,16 +24,16 @@ func run_repeat_take() {
 
 	// Run 'repeat-take' pattern.
 	// "1 2 3 4 5" expected
-	done := make(chan void)
-	defer close(done)
-	dataSource := Repeat(done, dataGenerator)
+	ctx, cancelCtx := context.WithCancel(context.Background())
+	defer cancelCtx()
+	dataSource := Repeat(ctx, dataGenerator)
 	for v := range TakeN(5, dataSource) {
 		fmt.Println(v)
 	}
 }
 
 // Repeat is an infinite data generator (repeater)
-func Repeat[T any](done <-chan void, dataGenerator func() T) <-chan T {
+func Repeat[T any](ctx context.Context, dataGenerator func() T) <-chan T {
 	outpCh := make(chan T)
 
 	go func() {
@@ -38,7 +41,7 @@ func Repeat[T any](done <-chan void, dataGenerator func() T) <-chan T {
 
 		for {
 			select {
-			case <-done:
+			case <-ctx.Done():
 				return
 			case outpCh <- dataGenerator():
 			}

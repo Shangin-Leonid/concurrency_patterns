@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -17,14 +18,14 @@ func run_fan_out() {
 		return -v
 	}
 
-	done := make(chan void)
-	defer close(done)
+	ctx, cancelCtx := context.WithCancel(context.Background())
+	defer cancelCtx()
 
 	// Let's time it
 	startTs := time.Now()
 
 	// Run the pattern
-	foDataChs := FanOut(done, NForks, dataProcessor, dataCh)
+	foDataChs := FanOut(ctx, NForks, dataProcessor, dataCh)
 	// Here is the place for your 'fan-in' pattern
 	for _, ch := range foDataChs {
 		fmt.Println(<-ch)
@@ -40,7 +41,7 @@ func run_fan_out() {
 // The stage need to satisfy some criteria:
 // * the forked stage is a tight place in programm (too computationally expensive)
 // * no matter the order of input processing and output reading
-func FanOut[T any](done <-chan void, nForks int, processor func(T) T, inpCh <-chan T) []<-chan T {
+func FanOut[T any](ctx context.Context, nForks int, processor func(T) T, inpCh <-chan T) []<-chan T {
 	if nForks <= 0 {
 		return []<-chan T{}
 	}
@@ -56,7 +57,7 @@ func FanOut[T any](done <-chan void, nForks int, processor func(T) T, inpCh <-ch
 			defer close(ch)
 
 			select {
-			case <-done:
+			case <-ctx.Done():
 				return
 			default:
 				v, ok := <-inpCh

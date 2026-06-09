@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -11,8 +12,8 @@ func run_fan_in() {
 	// Preparing
 	const NForks = 20
 
-	done := make(chan void)
-	defer close(done)
+	ctx, cancelCtx := context.WithCancel(context.Background())
+	defer cancelCtx()
 
 	processingTime := 2 * time.Second
 	dataProcessor := func(v int) int {
@@ -24,7 +25,7 @@ func run_fan_in() {
 	startTs := time.Now()
 
 	// Run the pattern
-	for v := range FanIn(FanOut(done, NForks, dataProcessor, randIntGenerator(NForks, 50))...) {
+	for v := range FanIn(FanOut(ctx, NForks, dataProcessor, randIntGenerator(NForks, 50))...) {
 		fmt.Println(v)
 	}
 
@@ -36,7 +37,7 @@ func run_fan_in() {
 // FanIn is used to join forked (for example in FanOut) processes (channels).
 // The output order is not guaranteed
 //
-// You may add 'done' channel to have an opportunity to stop before all of input channels will be closed.
+// You may add 'context' to have an opportunity to stop before all of input channels will be closed.
 func FanIn[T any](inpChs ...<-chan T) <-chan T {
 	outpCh := make(chan T)
 

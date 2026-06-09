@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+)
 
 // The 'pipeline' pattern: there are
 // * source of data
@@ -13,7 +16,7 @@ import "fmt"
 func run_pipeline() {
 
 	// Generates and owns the data flow, data emmiter.
-	generator := func(done <-chan void, data ...int) <-chan int {
+	generator := func(ctx context.Context, data ...int) <-chan int {
 		dataCh := make(chan int)
 
 		go func() {
@@ -21,7 +24,7 @@ func run_pipeline() {
 
 			for _, v := range data {
 				select {
-				case <-done:
+				case <-ctx.Done():
 					return
 				case dataCh <- v:
 				}
@@ -41,10 +44,10 @@ func run_pipeline() {
 	}
 
 	// Run the pipeline
-	done := make(chan void)
-	defer close(done)
-	dataInpCh := generator(done, data...)
-	pipelineOutpCh := Stage(done, signChanger, Stage(done, twicer, dataInpCh))
+	ctx, cancelCtx := context.WithCancel(context.Background())
+	defer cancelCtx()
+	dataInpCh := generator(ctx, data...)
+	pipelineOutpCh := Stage(ctx, signChanger, Stage(ctx, twicer, dataInpCh))
 
 	// "-2 -4 -6 -8 -10" expected
 	for v := range pipelineOutpCh {
@@ -55,7 +58,7 @@ func run_pipeline() {
 
 // Stage makes and runs a stage of pipeline, using recieved processing func.
 // Data flows through it.
-func Stage[T any](done <-chan void, processor func(T) T, inp <-chan T) <-chan T {
+func Stage[T any](ctx context.Context, processor func(T) T, inp <-chan T) <-chan T {
 	outp := make(chan T)
 
 	go func() {
@@ -63,7 +66,7 @@ func Stage[T any](done <-chan void, processor func(T) T, inp <-chan T) <-chan T 
 
 		for {
 			select {
-			case <-done:
+			case <-ctx.Done():
 				return
 			case v, ok := <-inp:
 				if !ok {
@@ -72,9 +75,9 @@ func Stage[T any](done <-chan void, processor func(T) T, inp <-chan T) <-chan T 
 				v = processor(v)
 				/*
 					// If need. Depends on programm logic.
-					// Because 'done' status may be changed since 'processor' started.
+					// Because 'ctx.Done()' status may be changed since 'processor' started.
 					select{
-					case <-done:
+					case <-ctx.Done():
 						return
 					default:
 					}
