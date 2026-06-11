@@ -1,6 +1,6 @@
 package main
 
-/*import (
+import (
 	"context"
 	"sync"
 )
@@ -83,4 +83,3 @@ func TeeChannel[T any](ctx context.Context, nChs int, inpCh <-chan T) []<-chan T
 
 	return AsReadOnly(outpChs)
 }
-*/
