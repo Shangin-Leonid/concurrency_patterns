@@ -5,6 +5,14 @@ import (
 	"sync"
 )
 
+func run_variable_tee_channel() {
+
+}
+
+/*
+Корректна ли данная реализация паттерна 'tee channel'? Есть ли здесь потенциальные deadlock, race condition, утечки горутин или другие критические ошибки? Какие есть недостатки у этого кода?
+*/
+
 func TeeChannel[T any](ctx context.Context, nChs int, inpCh <-chan T) []<-chan T {
 
 	// Corner cases
@@ -15,71 +23,84 @@ func TeeChannel[T any](ctx context.Context, nChs int, inpCh <-chan T) []<-chan T
 		return []<-chan T{inpCh} // Maybe unsafe
 	}
 
-	outpChs, closeOutpChs := MakeSliceOfChs(nChs, 0)
-	buffChs, _ := MakeSliceOfChs(nChs, 0)
+	outpChs, closeOutpChs := MakeSliceOfChs[T](nChs, 0) // Destination channels
+	bufChs, _ := MakeSliceOfChs[T](nChs, 0)             // Channels for data transit
 
-	wg := &sync.WaitGroup{}
+	wg := &sync.WaitGroup{} // Synchronization of 'resenders'and buffer filling
 
-	// Fill the buffer channels
-	fillBuffers := func(value T) (needExit bool) {
-		for _, bCh := range buffChs {
-			select {
-			case <-ctx.Done():
-				return true
-			default:
-			}
-			wg.Add(1)
-			bCh <- value
-		}
-
-		return false
-	}
-
-	resender := func(bufCh <-chan T, outpCh chan T) {
+	//
+	resendFromBufToOutp := func(bufCh <-chan T, outpCh chan T) {
 		defer close(outpCh)
+
+		var value T
+		var ok bool
 
 		for {
 			select {
 			case <-ctx.Done():
+				wg.Done()
 				return
-			case v, ok := <-bufCh:
+			case value, ok = <-bufCh:
 				if !ok {
+					wg.Done()
 					return
 				}
 				select {
 				case <-ctx.Done():
+					wg.Done()
 					return
-				case outpCh <- v:
+				case outpCh <- value:
 					wg.Done()
 				}
 			}
 		}
 	}
 
+	// Run resenders from buffers to destination channel
+	for i := range nChs {
+		go resendFromBufToOutp(bufChs[i], outpChs[i])
+	}
+
+	// Fill the buffer channels once
+	replicateToBufsOnce := func(value T) (ok bool) {
+		for _, bufCh := range bufChs {
+			select {
+			case <-ctx.Done():
+				return false
+			default:
+			}
+			bufCh <- value
+		}
+
+		return true
+	}
+
+	// Run a goroutine forking (resendig) values to buffer channels
 	go func() {
 		defer closeOutpChs()
 
+		var value T
+		var ok bool
+
 		for {
+			wg.Add(nChs)
+
 			select {
 			case <-ctx.Done():
 				return
-			case v, ok := <-inpCh:
+			case value, ok = <-inpCh:
 				if !ok {
 					return
 				}
-
-				needExit := fillBuffers(v)
-				if needExit {
-					return
-				}
-				wg.Wait()
 			}
+
+			ok = replicateToBufsOnce(value)
+			if !ok {
+				return
+			}
+			wg.Wait()
 		}
 	}()
-
-	for i := range nChs {
-		go resender(buffChs[i], outpChs[i])
-	}
 
 	return AsReadOnly(outpChs)
 }

@@ -17,16 +17,17 @@ const (
 
 // Get name of function to run using command line arg.
 var funcByPatternName = map[string]func(){
-	"lexical_confinement": run_lexical_confinement,
-	"generator":           run_generator,
-	"repeat_take":         run_repeat_take,
-	"or_channel":          run_or_channel,
-	"any_signal":          run_or_channel,
-	"pipeline":            run_pipeline,
-	"channel_filter":      run_channel_filter,
-	"fan_out":             run_fan_out,
-	"fan_in":              run_fan_in,
-	"fan_out_fan_in":      run_fan_out_fan_in,
+	"lexical_confinement":  run_lexical_confinement,
+	"generator":            run_generator,
+	"repeat_take":          run_repeat_take,
+	"or_channel":           run_or_channel,
+	"any_signal":           run_or_channel,
+	"pipeline":             run_pipeline,
+	"channel_filter":       run_channel_filter,
+	"fan_out":              run_fan_out,
+	"fan_in":               run_fan_in,
+	"fan_out_fan_in":       run_fan_out_fan_in,
+	"variable_tee_channel": run_variable_tee_channel,
 
 	"ct_select_priority": run_ct_select_priority,
 	"ct_or_done_loop":    run_ct_or_done_loop,
