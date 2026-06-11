@@ -74,12 +74,11 @@ func FanOut[T any](ctx context.Context, nForks int, processor func(T) T, inpCh <
 		}
 	}
 
-	outpChs := make([]<-chan T, nForks)
-	for i := range outpChs {
-		ch := make(chan T)
-		outpChs[i] = (<-chan T)(ch)
-		go worker(ch)
+	chs := make([]chan T, nForks)
+	for i := range chs {
+		chs[i] = make(chan T)
+		go worker(chs[i])
 	}
 
-	return outpChs
+	return AsReadOnly(chs)
 }
