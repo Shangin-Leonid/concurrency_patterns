@@ -1,31 +1,14 @@
 package main
 
-import "math/rand/v2"
+import (
+	"context"
+	"math/rand/v2"
+)
 
 func randIntGenerator(nInts int, upperBound int) <-chan int {
-	out := make(chan int)
-
-	go func() {
-		defer close(out)
-
-		for range nInts {
-			out <- rand.IntN(upperBound)
-		}
-	}()
-
-	return out
+	return TakeN(nInts, Repeat(context.Background(), func() int { return rand.IntN(upperBound) }))
 }
 
 func constIntGenerator(nInts int, val int) <-chan int {
-	out := make(chan int)
-
-	go func() {
-		defer close(out)
-
-		for range nInts {
-			out <- val
-		}
-	}()
-
-	return out
+	return TakeN(nInts, Repeat(context.Background(), func() int { return val }))
 }
