@@ -53,6 +53,9 @@ func run_tee_channel() {
 // The pattern is used for replicating values from one input channel to multiple output channel.
 // Value passing is synchronous: a new value can't be written before previous one is not read from all output channels.
 //
+// ATTENTION. Do you actually need to fork your input channel by this pattern?
+// Maybe you can just replicate a value from this channel and push it to several processing functions or goroutines?
+//
 // Recieves context, number of output channels and input read-only channel.
 // Returns a slice of output channel.
 //
@@ -150,6 +153,7 @@ func DoublingTeeChannel[T any](ctx context.Context, in <-chan T) (<-chan T, <-ch
 		var ok bool
 
 		for {
+			// Read from 'in'
 			select {
 			case <-ctx.Done():
 				return
@@ -157,17 +161,29 @@ func DoublingTeeChannel[T any](ctx context.Context, in <-chan T) (<-chan T, <-ch
 				if !ok {
 					return
 				}
+			}
 
-				tmpOut1, tmpOut2 := out1, out2
-				for tmpOut1 != nil || tmpOut2 != nil {
-					select {
-					case tmpOut1 <- value:
-						tmpOut1 = nil
-					case tmpOut2 <- value:
-						tmpOut2 = nil
-					}
+			// Replicate to 'out1' and 'out2'
+			select {
+
+			case <-ctx.Done():
+				return
+
+			case out1 <- value:
+				select {
+				case <-ctx.Done():
+					return
+				case out2 <- value:
+				}
+
+			case out2 <- value:
+				select {
+				case <-ctx.Done():
+					return
+				case out1 <- value:
 				}
 			}
+
 		}
 	}()
 
