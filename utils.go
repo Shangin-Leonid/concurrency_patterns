@@ -1,22 +1,6 @@
 package main
 
-import "math/rand/v2"
-
 type void struct{}
-
-func randIntGenerator(nInts int, upperBound int) <-chan int {
-	outpCh := make(chan int)
-
-	go func() {
-		defer close(outpCh)
-
-		for range nInts {
-			outpCh <- rand.IntN(upperBound)
-		}
-	}()
-
-	return outpCh
-}
 
 func AsReadOnly[T any](chs []chan T) []<-chan T {
 	outpChs := make([]<-chan T, len(chs))
