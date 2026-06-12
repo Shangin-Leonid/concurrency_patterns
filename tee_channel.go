@@ -2,33 +2,43 @@ package main
 
 import (
 	"context"
-	"sync"
+	"fmt"
 )
 
-func run_variable_tee_channel() {
+func run_tee_channel() {
+
+	inpCh := make(chan int)
+	ctx := context.Background()
+
+	go func() {
+		defer close(inpCh)
+
+		inpCh <- 10
+		inpCh <- 20
+		inpCh <- 30
+	}()
+
+	outpChs := TeeChannel(ctx, 3, inpCh)
+
+	resCh := FanIn(ctx, outpChs)
+
+	for v := range resCh {
+		fmt.Print(v, " ")
+	}
+	fmt.Println()
 
 }
 
-/*
-Корректна ли данная реализация паттерна 'tee channel'? Есть ли здесь потенциальные deadlock, race condition, утечки горутин или другие критические ошибки? Какие есть недостатки у этого кода?
-*/
-
 func TeeChannel[T any](ctx context.Context, nChs int, inpCh <-chan T) []<-chan T {
 
-	// Corner cases
+	// Corner cases for 'nChs'
 	switch {
 	case nChs <= 0:
 		return []<-chan T{}
 	case nChs == 1:
-		return []<-chan T{inpCh} // Maybe unsafe
+		return []<-chan T{inpCh}
 	}
 
-	outpChs, closeOutpChs := MakeSliceOfChs[T](nChs, 0) // Destination channels
-	bufChs, _ := MakeSliceOfChs[T](nChs, 0)             // Channels for data transit
-
-	wg := &sync.WaitGroup{} // Synchronization of 'resenders'and buffer filling
-
-	//
 	resendFromBufToOutp := func(bufCh <-chan T, outpCh chan T) {
 		defer close(outpCh)
 
@@ -36,55 +46,42 @@ func TeeChannel[T any](ctx context.Context, nChs int, inpCh <-chan T) []<-chan T
 		var ok bool
 
 		for {
+			// Read a value from buffer channel
 			select {
 			case <-ctx.Done():
-				wg.Done()
 				return
 			case value, ok = <-bufCh:
 				if !ok {
-					wg.Done()
 					return
 				}
-				select {
-				case <-ctx.Done():
-					wg.Done()
-					return
-				case outpCh <- value:
-					wg.Done()
-				}
+			}
+
+			// Resend the value to calling code (to output channel)
+			select {
+			case <-ctx.Done():
+				return
+			case outpCh <- value:
 			}
 		}
 	}
+
+	outpChs, _ := MakeSliceOfChs[T](nChs, 0)          // Destination channels
+	bufChs, closeBufChs := MakeSliceOfChs[T](nChs, 0) // Channels for data transit throw support goroutines
 
 	// Run resenders from buffers to destination channel
 	for i := range nChs {
 		go resendFromBufToOutp(bufChs[i], outpChs[i])
 	}
 
-	// Fill the buffer channels once
-	replicateToBufsOnce := func(value T) (ok bool) {
-		for _, bufCh := range bufChs {
-			select {
-			case <-ctx.Done():
-				return false
-			default:
-			}
-			bufCh <- value
-		}
-
-		return true
-	}
-
 	// Run a goroutine forking (resendig) values to buffer channels
 	go func() {
-		defer closeOutpChs()
+		defer closeBufChs()
 
 		var value T
 		var ok bool
 
 		for {
-			wg.Add(nChs)
-
+			// Read value from input channel
 			select {
 			case <-ctx.Done():
 				return
@@ -94,11 +91,15 @@ func TeeChannel[T any](ctx context.Context, nChs int, inpCh <-chan T) []<-chan T
 				}
 			}
 
-			ok = replicateToBufsOnce(value)
-			if !ok {
-				return
+			// Fill the buffer channels with current value
+			// TODO: maybe add a channel buffer to have non-blocking writing
+			for _, bufCh := range bufChs {
+				select {
+				case <-ctx.Done():
+					return
+				case bufCh <- value:
+				}
 			}
-			wg.Wait()
 		}
 	}()
 
