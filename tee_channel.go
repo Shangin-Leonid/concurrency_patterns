@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"sync"
 )
 
 func run_tee_channel() {
@@ -13,22 +14,50 @@ func run_tee_channel() {
 	go func() {
 		defer close(inpCh)
 
-		inpCh <- 10
-		inpCh <- 20
-		inpCh <- 30
+		inpCh <- 111
+		inpCh <- 88
+		inpCh <- 0
+		inpCh <- 0
+		inpCh <- 88
+		inpCh <- 111
 	}()
 
-	outpChs := TeeChannel(ctx, 3, inpCh)
+	outpChs := TeeChannel(ctx, 4, inpCh)
+	readersOrderedOutp := make([][]int, len(outpChs))
 
-	resCh := FanIn(ctx, outpChs)
+	wg := &sync.WaitGroup{}
+	reader := func(outp *[]int, inpCh <-chan int) {
+		defer wg.Done()
 
-	for v := range resCh {
-		fmt.Print(v, " ")
+		for v := range inpCh {
+			*outp = append(*outp, v)
+		}
 	}
-	fmt.Println()
+
+	wg.Add(len(outpChs))
+	for i := range len(outpChs) {
+		readersOrderedOutp[i] = []int{}
+		go reader(&readersOrderedOutp[i], outpChs[i])
+	}
+	wg.Wait()
+
+	// resCh := FanIn(ctx, outpChs)
+
+	for i, rOut := range readersOrderedOutp {
+		fmt.Println("reader", i, ":", rOut)
+	}
 
 }
 
+// TeeChannel is an implementation of the eponymous concurrency pattern.
+// The pattern is used for replicating values from one input channel to multiple output channel.
+// Value passing is synchronous: a new value can't be written before previous one is not read from all output channels.
+//
+// Recieves context, number of output channels and input read-only channel.
+// Returns a slice of output channel.
+//
+// TODO:
+//   - optimization: maybe add a channel buffer to have non-blocking writing
 func TeeChannel[T any](ctx context.Context, nChs int, inpCh <-chan T) []<-chan T {
 
 	// Corner cases for 'nChs'
@@ -92,7 +121,6 @@ func TeeChannel[T any](ctx context.Context, nChs int, inpCh <-chan T) []<-chan T
 			}
 
 			// Fill the buffer channels with current value
-			// TODO: maybe add a channel buffer to have non-blocking writing
 			for _, bufCh := range bufChs {
 				select {
 				case <-ctx.Done():
@@ -104,4 +132,44 @@ func TeeChannel[T any](ctx context.Context, nChs int, inpCh <-chan T) []<-chan T
 	}()
 
 	return AsReadOnly(outpChs)
+}
+
+// DoublingTeeChannel is the same as TeeChannel, but with 2 output channels.
+func DoublingTeeChannel[T any](ctx context.Context, in <-chan T) (<-chan T, <-chan T) {
+	out1 := make(chan T)
+	out2 := make(chan T)
+	closeAllOut := func() {
+		close(out1)
+		close(out2)
+	}
+
+	go func() {
+		defer closeAllOut()
+
+		var value T
+		var ok bool
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case value, ok = <-in:
+				if !ok {
+					return
+				}
+
+				tmpOut1, tmpOut2 := out1, out2
+				for tmpOut1 != nil || tmpOut2 != nil {
+					select {
+					case tmpOut1 <- value:
+						tmpOut1 = nil
+					case tmpOut2 <- value:
+						tmpOut2 = nil
+					}
+				}
+			}
+		}
+	}()
+
+	return out1, out2
 }
