@@ -1,8 +1,16 @@
-# ⚙️ Go Concurrency Patterns
+<!---
+![Golang](https://img.shields.io/badge/%20-navy?style=flat&logo=Go&logoSize=auto)
+![Golang](https://img.shields.io/badge/%20-00ADD8?style=flat&logo=Go&logoSize=auto&logoColor=white)
+![Golang](https://img.shields.io/badge/%20-white?style=flat&logo=Go&logoSize=auto&logoColor=00ADD8)
+-->
 
-This repository contains practical implementations of key concurrency and multithreading patterns in Go. These design patterns help efficiently manage goroutines, safely transfer data via channels, and prevent memory leaks.
+# ![Golang](https://img.shields.io/badge/%20-00ADD8?style=flat&logo=Go&logoSize=auto&logoColor=E7FEFB) Go Concurrency Patterns
 
-## 🛠️ Implemented patterns and tips
+This repository contains practical implementations of key concurrency and multithreading patterns in Golang. These design patterns help efficiently manage goroutines, safely transfer data via channels, and prevent memory leaks.
+
+## :white_check_mark: Implemented patterns and tips
+
+Some patterns have been taken from  "Concurrency in Go" by Katherine Cox-Buday.
 
 The project features the following patterns and mechanisms (each implemented in a dedicated file):
 
@@ -32,7 +40,7 @@ The project features the following patterns and mechanisms (each implemented in 
 
 ---
 
-## 🚀 Getting Started
+## :rocket: Getting Started
 
 To run these examples locally, you will need [Go](https://go.dev) installed and optionally the `make` utility.
 
@@ -55,6 +63,12 @@ If you do not have `make` installed, use the standard Go command:
 
 ```bash
 go run main.go <pattern to be tested>
+```
+
+### 3. Delete all rubish
+
+```bash
+make clean
 ```
 
 ---
