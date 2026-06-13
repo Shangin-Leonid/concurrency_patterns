@@ -134,7 +134,7 @@ func TeeChannel[T any](ctx context.Context, nChs int, inpCh <-chan T) []<-chan T
 		}
 	}()
 
-	return AsReadOnly(outpChs)
+	return AsReadOnlyWithUnsafe(outpChs)
 }
 
 // DoublingTeeChannel is the same as TeeChannel, but with 2 output channels.

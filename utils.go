@@ -1,5 +1,7 @@
 package main
 
+import "unsafe"
+
 type void struct{}
 
 func AsReadOnly[T any](chs []chan T) []<-chan T {
@@ -9,6 +11,10 @@ func AsReadOnly[T any](chs []chan T) []<-chan T {
 	}
 
 	return outpChs
+}
+
+func AsReadOnlyWithUnsafe[T any](chs []chan T) []<-chan T {
+	return *(*[]<-chan T)(unsafe.Pointer(&chs))
 }
 
 func MakeSliceOfChs[T any](nChs int, bufSz int) (_ []chan T, closeFunc func()) {
