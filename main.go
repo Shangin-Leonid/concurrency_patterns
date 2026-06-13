@@ -31,6 +31,7 @@ var funcByPatternName = map[string]func(){
 	"fan_out_fan_in":      run_fan_out_fan_in,
 	"tee_channel":         run_tee_channel,
 	"bridge_channel":      run_bridge_channel,
+	"context_deadline":    run_context_deadline,
 }
 
 func main() {
