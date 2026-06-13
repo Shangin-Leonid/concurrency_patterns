@@ -13,7 +13,7 @@
 
 This repository contains practical implementations of key concurrency and multithreading patterns in Golang. These design patterns help efficiently manage goroutines, safely transfer data via channels, and prevent memory leaks.
 
-## :white_check_mark: Implemented patterns and tips
+## :twisted_rightwards_arrows: Implemented patterns and tips
 
 Some patterns have been taken from  "Concurrency in Go" by Katherine Cox-Buday.
 
