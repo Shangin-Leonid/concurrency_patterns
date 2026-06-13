@@ -8,7 +8,7 @@ import (
 // How to use 'select' with a priority of one channel?
 // The result is 2/3 of reading from high priority channel and 1/3 for low one.
 // Works (helpful) when writers are faster than readers.
-func run_ct_select_priority() {
+func run_select_priority() {
 
 	generator := func(nWrites int) <-chan int {
 		ch := make(chan int)

@@ -21,7 +21,9 @@ var funcByPatternName = map[string]func(){
 	"generator":           run_generator,
 	"repeat_take":         run_repeat_take,
 	"or_channel":          run_or_channel,
+	"or_done_loop":        run_or_done_loop,
 	"any_signal":          run_or_channel,
+	"select_priority":     run_select_priority,
 	"pipeline":            run_pipeline,
 	"channel_filter":      run_channel_filter,
 	"fan_out":             run_fan_out,
@@ -29,9 +31,6 @@ var funcByPatternName = map[string]func(){
 	"fan_out_fan_in":      run_fan_out_fan_in,
 	"tee_channel":         run_tee_channel,
 	"bridge_channel":      run_bridge_channel,
-
-	"ct_select_priority": run_ct_select_priority,
-	"ct_or_done_loop":    run_ct_or_done_loop,
 }
 
 func main() {

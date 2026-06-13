@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func run_ct_or_done_loop() {
+func run_or_done_loop() {
 
 	// Instead of using this:
 	// (it is wrong because of block during waiting a value in 'channel', while context can be canceled)
