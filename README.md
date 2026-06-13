@@ -4,6 +4,11 @@
 ![Golang](https://img.shields.io/badge/%20-white?style=flat&logo=Go&logoSize=auto&logoColor=00ADD8)
 -->
 
+![Go version](https://img.shields.io/github/go-mod/go-version/Shangin-Leonid/acrogen?style=flat&logo=Go&logoColor=E7FEFB&logoSize=auto&labelColor=00ADD8&color=00ADD8)
+![Makefile](https://img.shields.io/static/v1?label=&message=Makefile&style=flat&logo=CMake&color=FE7A16)
+![Linux](https://img.shields.io/static/v1?label=&message=Linux&style=flat&logo=linux&color=2B822F)
+![Windows](https://img.shields.io/static/v1?label=&message=Windows&style=flat&logo=windows&color=4169e1)
+
 # ![Golang](https://img.shields.io/badge/%20-00ADD8?style=flat&logo=Go&logoSize=auto&logoColor=E7FEFB) Go Concurrency Patterns
 
 This repository contains practical implementations of key concurrency and multithreading patterns in Golang. These design patterns help efficiently manage goroutines, safely transfer data via channels, and prevent memory leaks.
