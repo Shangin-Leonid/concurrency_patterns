@@ -37,7 +37,7 @@ The project features the following patterns and mechanisms (each implemented in 
 
 🔹 **Fan-Out / Fan-In** (`fan_out.go`, `fan_in.go`, `fan_out_fan_in.go`) — distributing resource-intensive tasks across multiple goroutines and multiplexing the results into a single channel.
 
-🔹 **Worker pool** (`worker_pool.go`) — distributing data stream to multiple workers and join processed data to output channel.
+🔹 **Worker queue** (`worker_queue.go`) — simple distributing data stream to multiple workers and join processed data to output channel.
 
 🔹 **Tee-Channel** (`tee_channel.go`) — splitting a single input channel into two independent output streams (similar to the `tee` command-line utility).
 

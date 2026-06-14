@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func run_worker_pool() {
+func run_worker_queue() {
 
 	const nVals = 20
 	in := constIntGenerator(nVals, 7)
@@ -21,7 +21,7 @@ func run_worker_pool() {
 
 	const nWorkers = 10
 	ts := time.Now()
-	for v := range WorkerPool(context.Background(), nVals/2, procFunc, in) {
+	for v := range WorkerQueue(context.Background(), nVals/2, procFunc, in) {
 		fmt.Print(v, " ")
 	}
 	fmt.Println()
@@ -29,8 +29,8 @@ func run_worker_pool() {
 
 }
 
-// WorkerPool
-func WorkerPool[I, O any](ctx context.Context, nWorkers int, workerFunc func(I) O, in <-chan I) <-chan O {
+// WorkerQueue
+func WorkerQueue[I, O any](ctx context.Context, nWorkers int, workerFunc func(I) O, in <-chan I) <-chan O {
 	out := make(chan O, nWorkers)
 
 	go func() {
