@@ -30,6 +30,7 @@ var funcByPatternName = map[string]func(){
 	"fan_in":              run_fan_in,
 	"fan_out_fan_in":      run_fan_out_fan_in,
 	"worker_queue":        run_worker_queue,
+	"worker_pool":         run_worker_pool,
 	"tee_channel":         run_tee_channel,
 	"bridge_channel":      run_bridge_channel,
 	"context_deadline":    run_context_deadline,

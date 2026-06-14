@@ -29,7 +29,9 @@ func run_worker_queue() {
 
 }
 
-// WorkerQueue
+// WorkerQueue is an implementation of pattern often called 'Worker pool'.
+// But I find the name wrong. The function doesn't actually have any pool. Instead of this it starts all workers at the same time. All workers are trying to take a job, so they form a queue or a team.
+// The disadvantage of such pattern becomes evident when 'nWorkers' is too big. Maybe there is no need to have a huge team of workers all time, maybe it would better to call and free them only if necessary.
 func WorkerQueue[I, O any](ctx context.Context, nWorkers int, workerFunc func(I) O, in <-chan I) <-chan O {
 	out := make(chan O, nWorkers)
 
