@@ -49,18 +49,18 @@ The project features the following patterns and mechanisms (each implemented in 
 
 ---
 
-## :rocket: Getting Started
+## :rocket: Getting started
 
 To run these examples locally, you will need [Go](https://go.dev) installed and optionally the `make` utility.
 
-### 1. Clone the Repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Shangin-Leonid/concurrency_patterns
 cd concurrency_patterns
 ```
 
-### 2. Running the Code
+### 2. Running the code
 
 A `makefile` is provided in the root directory to quickly execute the demonstration code inside `main.go`:
 
@@ -74,7 +74,7 @@ If you do not have `make` installed, use the standard Go command:
 go run main.go <pattern to be tested>
 ```
 
-### 3. Delete all rubish
+### 3. Delete all rubbish
 
 ```bash
 make clean
