@@ -22,9 +22,9 @@ func run_time_limiter() {
 
 }
 
-func WithTimeLimit(timeLimit time.Duration, f func()) (ok bool) {
+func WithTimeLimit(timeLimit time.Duration, f func()) (done bool) {
 
-	ok = true
+	done = true
 	sigCh := make(chan void)
 
 	go func() {
@@ -34,8 +34,8 @@ func WithTimeLimit(timeLimit time.Duration, f func()) (ok bool) {
 
 	select {
 	case <-time.After(timeLimit):
-		return !ok
+		return !done
 	case <-sigCh:
-		return ok
+		return done
 	}
 }
