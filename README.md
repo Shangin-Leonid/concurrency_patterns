@@ -47,6 +47,8 @@ The project features the following patterns and mechanisms (each implemented in 
 
 🔹 **Context deadline** (`context_deadline.go`) — evident example of usage contexts with timeouts and deadlines.
 
+🔹 **Time limiter** (`time_limiter.go`) — waiting for callback running for no more than time limit.
+
 ---
 
 ## :rocket: Getting started
