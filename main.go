@@ -34,6 +34,7 @@ var funcByPatternName = map[string]func(){
 	"tee_channel":         run_tee_channel,
 	"bridge_channel":      run_bridge_channel,
 	"context_deadline":    run_context_deadline,
+	"time_limiter":        run_time_limiter,
 }
 
 func main() {
